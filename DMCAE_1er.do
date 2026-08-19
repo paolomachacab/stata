@@ -26,13 +26,14 @@ originario y departamento?
     log using "Actividad_EH2023.log", text replace
 	
 	*Variable de resultado
-	aestudio  //años de estudio
+	*aestudio  //años de estudio
 	
 	*Variables explicativas
-	s01a_02  // sexo
-	s01a_03  // edad
-	s01a_09	 // pertenencia a un pueblo indigena
-	area	 // area
+	*s01a_02  // sexo
+	*s01a_03  // edad
+	*s01a_09  // pertenencia a un pueblo indigena
+	*area	  // area
+	*depto	  // departamento
 		
 	* Cambiar nombres
 	rename s01a_02 sexo
@@ -40,6 +41,9 @@ originario y departamento?
 	rename s01a_09 pertenencia
 	
 	* Etiquetas
+	label variable sexo        "Sexo"
+	label variable edad        "Edad"
+	label variable area        "Área de residencia"
 	label variable pertenencia "Pertenencia indígena"
 
 	label define sexo_L 1 "1. Hombre" 2 "2. Mujer"
@@ -47,6 +51,9 @@ originario y departamento?
 
 	label define area_L 1 "1. Urbana" 2 "2. Rural"
 	label values area area_L
+
+	* Formato con dos decimales para que las medias no salgan redondeadas
+	format aestudio %9.2f
 
 	* Valores faltantes
 	codebook aestudio sexo edad pertenencia area depto
@@ -114,16 +121,6 @@ originario y departamento?
 	
 *4. Automatización y reproducibilidad
 
-	global group sexo edad_g pertenencia area
-
-	foreach var of varlist $group {
-	    tabstat aestudio, by (`var') statistics (mean sd median min max)
-	}
-
-	forvalues i =1/4 {
-	    tabstat aestudio if edad_g == `i', by(sexo) statistics(mean sd median min max) 
-	}
-
 	global grupos sexo area pertenencia depto
 
 	foreach var of varlist $grupos {
@@ -131,10 +128,12 @@ originario y departamento?
 		tab `var' sec_comp, row
 	}
 
+	* Brecha de género dentro de cada grupo de edad
 	forvalues i = 1/3 {
 		tab sexo sec_comp if edad_g == `i', row
 	}
 
+	* Brecha en años de estudio de cada dicotómica
 	foreach d of varlist mujer rural pertenece {
 		sum aestudio if `d' == 0
 		scalar m0 = r(mean)
@@ -145,6 +144,8 @@ originario y departamento?
 
 	log close
 
+
+/*
 *5. Interpretación económica
 
 	Pregunta: ¿Existen brechas en los años de estudio de la población boliviana
@@ -163,3 +164,4 @@ originario y departamento?
 	extranjeros y a 56 casos de educación alternativa porque no encajaban en
 	las categorías de la pregunta, pero ese criterio se eligio en base al tamaño
     que represntaban en la muestra
+ */
