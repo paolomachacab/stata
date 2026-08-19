@@ -159,6 +159,8 @@ originario y departamento?
 	Resultados:
 	1. Brecha urbano-rural: 11,6 años frente a 6,7 (4,9 años de diferencia).
 	2. Brecha de género: 1,1 años. La brecha étnica es 3,2 años.
+	3. La brecha de género se cierra entre generaciones: 2,27 años en la
+	   población de 60 y más, 1,29 en la de 40-59 y 0,18 en la de 25-39.
 
 	Limitación: una dificultad fue decidir a quién excluir. Se elimino a 49
 	extranjeros y a 56 casos de educación alternativa porque no encajaban en
