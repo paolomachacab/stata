@@ -98,7 +98,9 @@ Pregunta de investigación:
 	
 *4. Automatización y reproducibilidad
 
-	foreach var of varlist sexo edad_g pertenencia area {
+	global group sexo edad_g pertenencia area
+
+	foreach var of varlist $group {
 	    tabstat aestudio, by (`var') statistics (mean sd median min max)
 	}
 
