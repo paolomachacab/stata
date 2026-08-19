@@ -163,5 +163,5 @@ originario y departamento?
 	Limitación: una dificultad fue decidir a quién excluir. Se elimino a 49
 	extranjeros y a 56 casos de educación alternativa porque no encajaban en
 	las categorías de la pregunta, pero ese criterio se eligio en base al tamaño
-    que represntaban en la muestra
+    que representan en la muestra
  */
