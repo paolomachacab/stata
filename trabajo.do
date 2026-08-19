@@ -1,76 +1,100 @@
 /*
-*===============================================================================
+===============================================================================
 	DMCAE - 2026
 	Economía Computacional
 	Actividad en clase: Gestión de datos y propuesta de investigación empírica
-*===============================================================================	
+===============================================================================	
+
+-------------------------------------------------------------------------------
+Pregunta de investigación: 
+
+¿Cómo se relaciona el nivel educativo con el sexo, la edad, la pertenencia a una nación o pueblo indígena y el área de residencia en Bolivia durante 2023?
 */
-*-------------------------------------------------------------------------------
-* Pregunta de investigación: ¿Cómo se relaciona el nivel educativo del jefe o jefa de hogar con el ingreso per cápita del hogar en Bolivia (2023), y cómo difiere esa relación según el área de residencia, el sexo y el grupo de edad del jefe o jefa?
 
 
-*¿Cómo se relaciona el nivel educativo con el sexo, la edad, la pertenencia a una nación o pueblo indígena y el área de residencia en Bolivia durante 2023?
-
+*ACTIVIDAD
 
  * 1. Preparación y exploración de los datos
 	
 	* Cargar stata
 	clear all
 	cd "D:\OneDrive\Documentos\Ivan\Cursos\2026\Diplomado en Métodos Cuantitativos\Modulo 1 - Economía Computacional\EH 2023"
+	
 	use "EH2023_Persona", clear
 	
 	*Variable de resultado
-	yhogpc //ingreso del hogar percapita
+	aestudio:  //años de estudio
 	
-	*Variable explicativa
-	niv_ed_g // Nivel educativo general
+	*Variables explicativas
 	s01a_02  //sexo
 	s01a_03  //edad
-	depto	 // departamento	
+	s01a_09	 // pertenencia a un pueblo indigena
 	area	 // area
-	s01a_05	 // realacion o parentesco
-	
-	
+		
 	* Cambiar nombres
-	rename niv_ed_g nivel 
 	rename s01a_02 sexo
 	rename s01a_03 edad
-	rename s01a_05 parentesco_jh
-	
+	rename s01a_09 pertenencia
 	
 	* Valores faltantes
-	codebook yhogpc nivel sexo edad parentesco_jh depto area
+	codebook aestudio sexo edad pertenencia area
+	misstable summarize aestudio sexo edad pertenencia area
 	
-	keep if !missing(yhogpc)
-	keep if !missing(nivel)
-	codebook yhogpc nivel
+	keep if !missing(aestudio)
 	
-	sum yhogpc
-	replace yhogpc = . if yhogpc < 100
 	
 * 2. Construccion de variables
 	
-	gen jefe_hogar = parentesco_jh==1
-	tab jefe_hogar_
+	* Creacion de las variables hombre y mujer a partir de la variable sexo
 
+	gen hombre = sexo==1
+	tab hombre
+	
 	gen mujer = sexo==2
 	tab mujer
+
+	* Construcción de la vaariable categorica para edad considerando rangos
+	recode edad (0/17=1) (18/29=2) (30/59=3) (60/99=4), generate(edad_g)
+	label variable edad_g "Grupo de edad"
+	label define edad_g_L 1 "1. Menor de edad" 2 "2. Joven" 3 "3. Adulto" 4 "4. Viejo"
+	label values edad_g edad_g_L
+	tab edad_g
+	
+	* Creacion de las variables pertenece y no pertenece a partir de la variable pertenencia
+	
+	gen pertenece = pertenencia==1
+	tab pertenece
+	
+	gen nopertenece = pertenencia==2
+	tab nopertenece
+	
+	* Creacion de las variables urbano y rural a partir de la variable area
 	
 	gen urbano = area==1
 	tab urbano
-
 	
-	
-	
-	
-	
-	
-	
+	gen rural = area==2
+	tab rural
 	
 	
 *3. Análisis descriptivo
+
+	sum aestudio, detail
+	tab sexo
+	tab edad_g
+	tab pertenencia
+	tab area
+	
+	tab aestudio sexo
+	tab aestudio edad_g
+	tab aestudio pertenencia
+	tab aestudio area
+	
+	tabstat aestudio, by(sexo) statistics(mean sd median min max)
+	tabstat aestudio, by(edad_g) statistics(mean sd median min max)
+	tabstat aestudio, by(pertenencia) statistics(mean sd median min max)
+	tabstat aestudio, by(area) statistics(mean sd median min max)
+	
+	
 *4. Automatización y reproducibilidad
 *5. Interpretación económica
-
-	
-	
