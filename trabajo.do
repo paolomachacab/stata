@@ -23,11 +23,11 @@ Pregunta de investigación:
 	use "EH2023_Persona", clear
 	
 	*Variable de resultado
-	aestudio:  //años de estudio
+	aestudio  //años de estudio
 	
 	*Variables explicativas
-	s01a_02  //sexo
-	s01a_03  //edad
+	s01a_02  // sexo
+	s01a_03  // edad
 	s01a_09	 // pertenencia a un pueblo indigena
 	area	 // area
 		
