@@ -97,4 +97,9 @@ Pregunta de investigación:
 	
 	
 *4. Automatización y reproducibilidad
+
+	foreach var of varlist sexo edad_g pertenencia area {
+	    tabstat aestudio, by (`var') statistics (mean sd median min max)
+	}
+
 *5. Interpretación económica
