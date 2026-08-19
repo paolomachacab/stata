@@ -102,4 +102,8 @@ Pregunta de investigación:
 	    tabstat aestudio, by (`var') statistics (mean sd median min max)
 	}
 
+	forvalues i =1/4 {
+	    tabstat aestudio if edad_g == `i', by(sexo) statistics(mean sd median min max) 
+	}
+
 *5. Interpretación económica
