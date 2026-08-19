@@ -8,7 +8,9 @@
 -------------------------------------------------------------------------------
 Pregunta de investigación: 
 
-¿Cómo se relaciona el nivel educativo con el sexo, la edad, la pertenencia a una nación o pueblo indígena y el área de residencia en Bolivia durante 2023?
+¿Existen brechas en los años de estudio de la población boliviana de 25 años
+o más según sexo, área de residencia, pertenencia a un pueblo indígena
+originario y departamento?
 */
 
 
@@ -21,6 +23,7 @@ Pregunta de investigación:
 	cd "D:\OneDrive\Documentos\Ivan\Cursos\2026\Diplomado en Métodos Cuantitativos\Modulo 1 - Economía Computacional\EH 2023"
 	
 	use "EH2023_Persona", clear
+    log using "Actividad_EH2023.log", text replace
 	
 	*Variable de resultado
 	aestudio  //años de estudio
@@ -36,64 +39,77 @@ Pregunta de investigación:
 	rename s01a_03 edad
 	rename s01a_09 pertenencia
 	
+	* Etiquetas
+	label variable pertenencia "Pertenencia indígena"
+
+	label define sexo_L 1 "1. Hombre" 2 "2. Mujer"
+	label values sexo sexo_L
+
+	label define area_L 1 "1. Urbana" 2 "2. Rural"
+	label values area area_L
+
 	* Valores faltantes
-	codebook aestudio sexo edad pertenencia area
-	misstable summarize aestudio sexo edad pertenencia area
-	
+	codebook aestudio sexo edad pertenencia area depto
+	tab pertenencia, m
+
+	* Observaciones problemáticas
+	sum edad if missing(aestudio)		// son niños de 0 a 3 años
+	count if aestudio > edad & !missing(aestudio)
+
+	* Muestra de análisis: 25 años o más, sin extranjeros ni educación alternativa
 	keep if !missing(aestudio)
+	keep if edad >= 25
+	drop if pertenencia == 3
+	drop if niv_ed_g == 4
+
+	count
 	
 	
 * 2. Construccion de variables
 	
-	* Creacion de las variables hombre y mujer a partir de la variable sexo
+	* Variable derivada: 12 años = secundaria completa o más en Bolivia
+	gen sec_comp = aestudio >= 12
+	label variable sec_comp "Secundaria completa"
+	label define sec_L 0 "0. No" 1 "1. Sí"
+	label values sec_comp sec_L
+	tab sec_comp
 
-	gen hombre = sexo==1
-	tab hombre
-	
-	gen mujer = sexo==2
-	tab mujer
+	* Validación contra el nivel educativo de la base
+	tab niv_ed sec_comp, row
 
-	* Construcción de la vaariable categorica para edad considerando rangos
-	recode edad (0/17=1) (18/29=2) (30/59=3) (60/99=4), generate(edad_g)
+	* Dicotómicas
+	gen mujer = sexo == 2
+	gen pertenece = pertenencia == 1
+	gen rural = area == 2
+	tab1 mujer pertenece rural
+
+	* Recodificación de edad en grupos
+	recode edad (25/39 = 1) (40/59 = 2) (60/max = 3), generate(edad_g)
 	label variable edad_g "Grupo de edad"
-	label define edad_g_L 1 "1. Menor de edad" 2 "2. Joven" 3 "3. Adulto" 4 "4. Viejo"
+	label define edad_g_L 1 "1. 25-39" 2 "2. 40-59" 3 "3. 60 y más"
 	label values edad_g edad_g_L
 	tab edad_g
-	
-	* Creacion de las variables pertenece y no pertenece a partir de la variable pertenencia
-	
-	gen pertenece = pertenencia==1
-	tab pertenece
-	
-	gen nopertenece = pertenencia==2
-	tab nopertenece
-	
-	* Creacion de las variables urbano y rural a partir de la variable area
-	
-	gen urbano = area==1
-	tab urbano
-	
-	gen rural = area==2
-	tab rural
 	
 	
 *3. Análisis descriptivo
 
 	sum aestudio, detail
+
 	tab sexo
-	tab edad_g
-	tab pertenencia
 	tab area
-	
-	tab aestudio sexo
-	tab aestudio edad_g
-	tab aestudio pertenencia
-	tab aestudio area
-	
-	tabstat aestudio, by(sexo) statistics(mean sd median min max)
-	tabstat aestudio, by(edad_g) statistics(mean sd median min max)
-	tabstat aestudio, by(pertenencia) statistics(mean sd median min max)
-	tabstat aestudio, by(area) statistics(mean sd median min max)
+	tab pertenencia
+	tab depto
+
+	tab sexo, sum(aestudio)
+	tab area, sum(aestudio)
+	tab pertenencia, sum(aestudio)
+	tab depto, sum(aestudio)
+
+	* Tabulaciones cruzadas
+	tab sexo sec_comp, row
+	tab area sec_comp, row
+	tab pertenencia sec_comp, row
+	tab depto sec_comp, row
 	
 	
 *4. Automatización y reproducibilidad
@@ -108,4 +124,42 @@ Pregunta de investigación:
 	    tabstat aestudio if edad_g == `i', by(sexo) statistics(mean sd median min max) 
 	}
 
+	global grupos sexo area pertenencia depto
+
+	foreach var of varlist $grupos {
+		tab `var', sum(aestudio)
+		tab `var' sec_comp, row
+	}
+
+	forvalues i = 1/3 {
+		tab sexo sec_comp if edad_g == `i', row
+	}
+
+	foreach d of varlist mujer rural pertenece {
+		sum aestudio if `d' == 0
+		scalar m0 = r(mean)
+		sum aestudio if `d' == 1
+		scalar m1 = r(mean)
+		display "Brecha `d' = " m0 - m1
+	}
+
+	log close
+
 *5. Interpretación económica
+
+	Pregunta: ¿Existen brechas en los años de estudio de la población boliviana
+	de 25 años o más según sexo, área de residencia, pertenencia indígena y
+	departamento? 
+
+	Se espera menos años de estudio en mujeres, población rural
+	e indígena, porque el acceso a la escuela estuvo limitado por la distancia,
+	el costo de dejar de trabajar y cuidados.
+
+	Resultados:
+	1. Brecha urbano-rural: 11,6 años frente a 6,7 (4,9 años de diferencia).
+	2. Brecha de género: 1,1 años. La brecha étnica es 3,2 años.
+
+	Limitación: una dificultad fue decidir a quién excluir. Se elimino a 49
+	extranjeros y a 56 casos de educación alternativa porque no encajaban en
+	las categorías de la pregunta, pero ese criterio se eligio en base al tamaño
+    que represntaban en la muestra
